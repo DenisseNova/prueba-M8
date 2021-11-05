@@ -1,5 +1,6 @@
 const express = require('express')
 const fs = require('fs').promises
+const bcrypt = require('bcrypt');
 const app = express()
 const exphbs = require("express-handlebars");
 const expressFileUpload = require("express-fileupload");
@@ -10,6 +11,7 @@ const secretKey = "Notoy";
 const {nuevoUsuario, getUsuario, getAdmin, setUsuarioStatus} = require("./servidor")
 
 const PORT = 3000;
+const saltRounds = 10;
 
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
@@ -21,19 +23,6 @@ app.use(expressFileUpload({
   abortOnLimit: true,
   responseOnLimit: "El tamaño del archivo supera el limite establecido",
 }));
-/*const renderPage = (pathRoute, pathHTML) => {
-  app.get(pathRoute, async (req, res) => {
-    const fileHTML = await fs.readFile(pathHTML, 'utf-8');
-    return res.send(fileHTML)
-  })
-}
-
-app.use(express.static(__dirname + '/assets/'))
-renderPage('/', './index.html');
-renderPage('/admin', './Admin.html')
-renderPage('/datos', './Datos.html')
-renderPage('/registro', './Registro.html')
-renderPage('/login', './Login.html')*/
 
 app.engine(
   'handlebars',
@@ -49,21 +38,23 @@ app.set('view engine', 'handlebars');
 app.get('/', function(req, res ) {
   res.render('index')
 })
+
 app.get('/registro', function(req, res ) {
   res.render('Registro')
-})
-app.get('/login', function(req, res ) {
-  res.render('Login')
 })
 
 app.post("/registro", async(req, res) =>{
   const {email, nombre, password, experiencia, especialidad, perfil} = req.body;
   //coincide con el payload de axios
+
+  const newPassword = bcrypt.hashSync(password, saltRounds);
+
   try{
-    const usuario = await nuevoUsuario(email, nombre, password, experiencia, especialidad, perfil);
+    const usuario = await nuevoUsuario(email, nombre, newPassword, experiencia || 0, especialidad, perfil || '');
     //res.status(201).send(usuario);
     res.status(201).send(JSON.stringify(usuario));
   }catch(e){
+    console.log(e)
     res.status(500).send({
       error: `Ha ocurrido un error ${e}`,
       code: 500
@@ -71,6 +62,44 @@ app.post("/registro", async(req, res) =>{
   };
 });
 
+app.get('/login', function(req, res ) {
+  res.render('Login')
+})
+
+app.post("/login", async function(req, res){
+  const {email, password} = req.body;
+  const user = await getUsuario(email);
+  if(user){
+    if(user.estado){
+      if(!bcrypt.compareSync(password, user.password)) {
+        return res.status(400).send({
+          error: "La contraseña no coincide",
+          code: 400
+        });
+      }
+
+      const dataUser = { ...user, password: '' } 
+      const token = jwt.sign(
+        {
+          exp: Math.floor(Date.now() / 1000) + 180,
+          data: dataUser,
+        },
+        secretKey
+      );
+      res.send(token);
+    }else{
+      res.status(401).send({
+        error: "Usuario no validado",
+        code: 401
+      });
+    }
+  }else{
+    res.status(404).send({
+      error: "Usuario no resgistrado",
+      code: 404
+    });
+  }
+});
 
 app.get("/admin", async(req, res) =>{
   //res.render("Admin");
@@ -100,34 +129,26 @@ app.put("/usuarios", async(req, res) =>{
   };
 });
 
-app.post("/verify", async function(req, res){
-  const {email, password} = req.body;
-  const user = await getUsuario(email, password);
-  if(user){
-    if(user.auth){
-      const token = jwt.sign(
-        {
-          exp: Math.floor(Date.now() / 1000) + 180,
-          data: user,
-        },
-        secretKey
-      );
-      res.send(token);
-    }else{
-      res.status(401).send({
-        error: "Usuario no validado",
-        code: 401
-      });
-    }
-  }else{
-    res.status(404).send({
-      error: "Usuario no resgistrado",
-      code: 404
-    });
+app.get("/Datos", function(req, res){
+  const {token} = req.query;
+  let jwtDecoded = '';
+  try {
+    jwtDecoded = jwt.verify(token, secretKey);
+  } catch (e) {
+    console.log(e)
   }
+  if (!jwtDecoded){
+    return res.status(401).send({
+        error: "401 Unauthorized",
+        messaege: "Usted no se encuentra autorizado",
+    })
+  }
+  res.render("datos", { ...jwtDecoded.data });
 });
 
-
+app.put('/Datos', function (req, res){
+  
+})
 
 
 app.listen(PORT, () => {

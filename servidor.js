@@ -24,8 +24,8 @@ async function setUsuarioStatus(id, estado){
   return usuario;
 };
 
-async function getUsuario(email, password){
-  const result = await pool.query(`SELECT * FROM skaters WHERE email = '${email}' AND password = '${password}'`);
+async function getUsuario(email){
+  const result = await pool.query(`SELECT * FROM skaters WHERE email = '${email}'`);
   return result.rows[0]
 };
 
