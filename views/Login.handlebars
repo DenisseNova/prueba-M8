@@ -6,14 +6,34 @@
     <div class="form-group">
       <div class="form-group">
         <label>Email</label>
-        <input class="form-control w-50 m-auto" />
+        <input type="email" class="form-control w-50 m-auto" id="email" />
       </div>
       <div class="form-group">
         <label>Password</label>
-        <input class="form-control w-50 m-auto" />
+        <input type="password" class="form-control w-50 m-auto" id="password" />
       </div>
     </div>
-    <button class="btn btn-success mb-3">Ingresar</button>
-    <p>¿Aún no tienes cuenta? <a href="/registro">Regístrate</a></p>
+    <button onclick="verificacion()" class="btn btn-success mb-3">Ingresar</button>
+    <p>¿Aún no tienes cuenta? <a href="/Registro">Regístrate</a></p>
   </form>
 </div>
+
+<script>
+  const verificacion = async () => {
+    const email = document.getElementById('email').value
+    const password = document.getElementById('password').value
+    const payload = { email, password }
+    try {
+      const { data: token } = await axios.post('/verify', payload)
+      alert(`Autenticacion exitosa`)
+      //window.location.href = /Evidencias?token=${token}
+      window.location.href = `/Datos?token=${token}`
+
+    }catch(e) {
+      console.log('aquiii', e)
+      const { data } = e.response
+      const { error } = data
+      alert(error)
+    }
+  }
+</script>
