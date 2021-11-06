@@ -32,7 +32,7 @@
       else return alert('No fue posible autenticar')
       //window.location.href = /Evidencias?token=${token}
       
-      
+      sessionStorage.setItem('token', token)
       window.location.href = `/Datos?token=${token}`
 
     }catch(e) {

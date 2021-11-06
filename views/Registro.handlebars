@@ -1,6 +1,6 @@
 <div class="py-4">
   {{> Subtitle text='Registro' }}
-  <form id="form-registro">
+  <form id="form-registro" enctype="multipart/form-data">
     <div class="form-group row w-50 m-auto">
       <div class="form-group col-12 col-sm-6" >
         <label>Email</label>
@@ -36,6 +36,7 @@
   </form>
 </div>
 
+
 <script>
 
   $('#form-registro').submit(async (e) => {
@@ -51,7 +52,21 @@
     const payload = { email, nombre, password, repita, anos_experiencia, especialidad, foto }
 
     try {
-      await axios.post('/registro', payload)
+      var formData = new FormData();
+      var imagefile = document.querySelector('#foto');
+      formData.append("foto", imagefile.files[0]);
+      formData.append("email", email);
+      formData.append("nombre", nombre);
+      formData.append("password", password);
+      formData.append("repita", repita);
+      formData.append("anos_experiencia", anos_experiencia);
+      formData.append("especialidad", especialidad);
+
+      await axios.post('/registro', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      })
       alert('Usuario registrado con exito')
 
       window.location.href = '/login'

@@ -29,5 +29,24 @@ async function getUsuario(email){
   return result.rows[0]
 };
 
+async function putDatos(newDatos){
+  //let query = ``;
+  //if(newDatos.nombre) query += `nombre = '${newDatos.nombre}',`
+  //if(newDatos.password) query += `password = '${newDatos.password}',`
+  
+  const query = Object.keys(newDatos).map(nameKey =>  newDatos[nameKey] ? `${nameKey} = '${newDatos[nameKey]}'` : '' ).filter(el => el).join(', ')
+  
+  const result = await pool.query(`UPDATE skaters SET ${query} WHERE email = '${newDatos.email}' RETURNING nombre, email;`)
+  const usuario = result.rows[0];
+  return usuario
+  
+}
 
-module.exports = {nuevoUsuario, getUsuario, getAdmin, setUsuarioStatus }
+async function deleteDatos(email){
+  const result = await pool.query(`DELETE FROM skaters WHERE email = '${email}' RETURNING nombre, email, foto;`);
+  return result.rows[0];
+}
+
+
+
+module.exports = {nuevoUsuario, getUsuario, getAdmin, setUsuarioStatus, putDatos, deleteDatos }
