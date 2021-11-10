@@ -48,7 +48,7 @@
     const experiencia = document.getElementById('experiencia').value
     const especialidad = document.getElementById('especialidad').value
 
-    if (password !== repita) return alert('Las nueva contraseña no coincide') 
+    if (password !== repita) Swal.fire('Las nueva contraseña no coincide')  //alert('Las nueva contraseña no coincide') 
 
     const payload = { nombre, password, repita, anos_experiencia: experiencia, especialidad }
     console.log('aqui payload', payload)
@@ -80,7 +80,9 @@
       window.location.href = "/"
 
     } catch (e) {
-      
+      const { data } = e.response
+      const { error } = data
+      alert(error)
     }
   }
 

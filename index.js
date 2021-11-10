@@ -6,18 +6,22 @@ const exphbs = require("express-handlebars");
 const expressFileUpload = require("express-fileupload");
 const bodyParser = require("body-parser");
 const jwt = require('jsonwebtoken');
+const Swal = require('sweetalert2')
+const path = require('path');
 const secretKey = "Notoy";
 
 const { nuevoUsuario, getUsuario, getAdmin, setUsuarioStatus, putDatos, deleteDatos } = require("./servidor")
 
 const PORT = 3000;
 const saltRounds = 10;
+const raiz = path.join(__dirname, "..") 
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 app.use(express.static(__dirname + '/assets/'))
 app.use(express.static(__dirname + '/assets/img'))
+app.use("/sweetalert2", express.static(path.join(raiz, "node_modules", "sweetalert2", "dist")))
 
 app.use(expressFileUpload({
   limits: 6500000,
@@ -182,9 +186,6 @@ app.delete("/eliminarCuenta", (req, res) => {
     res.status(200).send(email)
   })
 })
-
-
-
 
 app.listen(PORT, () => {
   console.log(`Ejcutandose en http://localhost:${PORT}`)

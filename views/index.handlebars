@@ -20,24 +20,6 @@
   <a href="/registro">Registrarme</a>
 </div>
 
-{{!<script>
-  const changeStatus = async(id, e) =>{
-    //la "e" es el elemento del this
-    const estado = e.checked
-    try{
-      await axios.put("http://localhost:3000/registro", {
-      id, estado
-    })
-    alert(estado ? "Usuario habilitado para subir contenido" : "Usuario dehabilitado para subir contenido")
-    }catch(e){
-      const {data} = e.response
-      const {error} = data
-      alert(error)
-    }
-  }
-</script>}}
-
-
 <script>
   let url = 'http://localhost:3000/registro/all';
   let tbody = document.getElementById('cuerpo');
